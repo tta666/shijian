@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球首都时间</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            --text-light: #fff;
+            --text-dark: #333;
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --transition: all 0.3s ease;
+            --transition-slow: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-light);
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            font-size: 28px;
+            color: var(--accent);
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(to right, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* 粒子背景效果 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* 音乐控制器 - 灵动岛样式 */
+        .music-controller {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .music-capsule {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
+            max-width: 300px;
+            cursor: pointer;
+            position: relative;
+            z-index: 100;
+            height: 50px;
+            overflow: hidden;
+        }
+        
+        .music-capsule.expanded {
+            height: 120px;
+            padding: 15px;
+        }
+        
+        .music-capsule .play-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.4);
+        }
+        
+        .music-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 140px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .song-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .song-artist {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .music-controls button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            opacity: 0.8;
+        }
+        
+        .music-controls button:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        /* 时间卡片容器 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* 新增的搜索框 */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        
+        .search-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .search-box input {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+            padding: 0 8px;
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding-bottom: 50px;
+        }
+        
+        .time-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
+            transition: var(--transition-slow);
+            max-height: 85px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .time-card.active {
+            max-height: 300px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-country {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .card-flag {
+            font-size: 28px;
+        }
+        
+        .card-title h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .card-title .timezone {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 3px;
+        }
+        
+        .card-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .time-card.active .card-indicator {
+            transform: rotate(180deg);
+        }
+        
+        .time-display {
+            padding: 15px 0;
+            text-align: center;
+        }
+        
+        .time-display .main-time {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            font-feature-settings: "tnum" 1;
+        }
+        
+        .time-display .date {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .time-card .detail-info {
+            padding: 10px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .detail-info .detail-item {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .detail-item .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .detail-item .detail-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* 新添加的天气显示 */
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-top: 10px;
+        }
+        
+        .weather-info i {
+            font-size: 20px;
+            color: #f5df4d;
+        }
+        
+        .weather-text {
+            font-size: 14px;
+        }
+        
+        /* 添加的分享按钮 */
+        .share-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .share-btn:hover {
+            background: var(--primary);
+        }
+        
+        /* 新增的页脚 */
+        footer {
+            text-align: center;
+            padding: 30px 0 20px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        /* 媒体查询 */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .time-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .music-capsule.expanded {
+                height: 130px;
+                max-width: 90vw;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .time-display .main-time {
+                font-size: 30px;
+            }
+            
+            .card-title h2 {
+                font-size: 18px;
+            }
+            
+            .detail-item .detail-value {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header>
+        <div class="logo">
+            <i class="fas fa-globe-asia"></i>
+            <h1>全球首都时间</h1>
+        </div>
+    </header>
+    
+    <!-- 音乐控制器 -->
+    <div class="music-controller">
+        <div class="music-capsule" id="musicCapsule">
+            <div class="play-btn" id="playBtn">
+                <i class="fas fa-play" id="playIcon"></i>
+            </div>
+            <div class="music-info">
+                <div class="song-title" id="songTitle">音乐未播放</div>
+                <div class="song-artist">周杰伦</div>
+                <div class="music-controls">
+                    <button id="prevBtn" title="上一首"><i class="fas fa-step-backward"></i></button>
+                    <button id="playPauseBtn" title="播放/暂停"><i class="fas fa-play" id="playControlIcon"></i></button>
+                    <button id="nextBtn" title="下一首"><i class="fas fa-step-forward"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 新增的搜索功能 -->
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索首都或国家..." aria-label="搜索城市">
+                <button id="clearSearch"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        
+        <div class="time-grid" id="timeGrid">
+            <!-- 时间卡片将通过JS动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 新添加的页脚 -->
+    <footer>
+        <p>© 2025 全球首都时间 | 腾讯元宝提供支持</p>
+        <p>本网站已访问 <span id="visitCount">0</span> 次</p>
+    </footer>
+
+    <!-- 音频元素 -->
+    <audio id="backgroundMusic" loop></audio>
+    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
+
+    <script>
+        // 周杰伦音乐库
+        const songs = [
+            {
+                id: 1,
+                title: '反方向的钟',
+                artist: '周杰伦',
+                url: 'https://sf5-hl-cdn-tos.douyinstatic.com/obj/ies-music/7433642318005127963.mp3'
+            },
+            {
+                id: 2,
+                title: '晴天',
+                artist: '周杰伦',
+                url: 'https://lf26-music-east.douyinstatic.com/obj/ies-music-hj/7475296727583574844.mp3'
+            },
+            {
+                id: 3,
+                title: '花海',
+                artist: '周杰伦',
+                url: 'https://lf9-music-east.douyinstatic.com/obj/ies-music-hj/7512876199731907387.mp3'
+            },
+            {
+                id: 4,
+                title: '原来',
+                artist: '周杰伦',
+                url: 'https://sf5-hl-cdn-tos.douyinstatic.com/obj/ies-music/7380355009764313895.mp3'
+            }
+        ];
+        
+        // 全球首都数据
+        const capitals = [
+            { city: '北京', country: '中国', timezone: 'Asia/Shanghai', flag: '🇨🇳' },
+            { city: '东京', country: '日本', timezone: 'Asia/Tokyo', flag: '🇯🇵' },
+            { city: '首尔', country: '韩国', timezone: 'Asia/Seoul', flag: '🇰🇷' },
+            { city: '莫斯科', country: '俄罗斯', timezone: 'Europe/Moscow', flag: '🇷🇺' },
+            { city: '伦敦', country: '英国', timezone: 'Europe/London', flag: '🇬🇧' },
+            { city: '巴黎', country: '法国', timezone: 'Europe/Paris', flag: '🇫🇷' },
+            { city: '柏林', country: '德国', timezone: 'Europe/Berlin', flag: '🇩🇪' },
+            { city: '华盛顿', country: '美国', timezone: 'America/New_York', flag: '🇺🇸' },
+            { city: '渥太华', country: '加拿大', timezone: 'America/Toronto', flag: '🇨🇦' },
+            { city: '堪培拉', country: '澳大利亚', timezone: 'Australia/Sydney', flag: '🇦🇺' },
+            { city: '新德里', country: '印度', timezone: 'Asia/Kolkata', flag: '🇮🇳' },
+            { city: '巴西利亚', country: '巴西', timezone: 'America/Sao_Paulo', flag: '🇧🇷' }
+        ];
+
+        // 模拟天气数据
+        const weatherConditions = ['☀️ 晴天', '⛅ 多云', '🌧️ 小雨', '🌦️ 阵雨', '🌤️ 局部多云', '🌫️ 雾霾', '❄️ 下雪'];
+        const weatherIcons = ['fa-sun', 'fa-cloud-sun', 'fa-cloud-rain', 'fa-cloud-showers-heavy', 'fa-cloud', 'fa-smog', 'fa-snowflake'];
+
+        // 初始化DOM元素引用
+        const timeGrid = document.getElementById('timeGrid');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const playControlIcon = document.getElementById('playControlIcon');
+        const songTitle = document.getElementById('songTitle');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const musicCapsule = document.getElementById('musicCapsule');
+        const clickSound = document.getElementById('clickSound');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearch = document.getElementById('clearSearch');
+        const visitCountElement = document.getElementById('visitCount');
+
+        // 状态变量
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let backwardsCount = 0;
+        let reverseActive = false;
+        let reverseStartTimestamp = 0;
+        let reverseStartTime = 0;
+        let expandedCard = null;
+        let visitCount = localStorage.getItem('visitCount') || 0;
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            visitCount = parseInt(visitCount) + 1;
+            localStorage.setItem('visitCount', visitCount);
+            visitCountElement.textContent = visitCount;
+            
+            renderTimeCards();
+            setupParticles();
+            loadMusic();
+            
+            // 播放器展开/折叠
+            musicCapsule.addEventListener('click', function(e) {
+                if (!e.target.closest('.play-btn') && !e.target.closest('.music-controls')) {
+                    musicCapsule.classList.toggle('expanded');
+                }
+            });
+            
+            // 搜索功能
+            searchInput.addEventListener('input', filterTimeCards);
+            clearSearch.addEventListener('click', () => {
+                searchInput.value = '';
+                filterTimeCards();
+            });
+            
+            // 添加时间更新循环
+            setInterval(updateAllTimes, 500);
+        });
+        
+        // 粒子背景初始化
+        function setupParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = `${Math.random() * 5 + 2}px`;
+                particle.style.height = particle.style.width;
+                particle.style.background = 'rgba(255, 255, 255, 0.3)';
+                particle.style.borderRadius = '50%';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.opacity = Math.random() * 0.7 + 0.3;
+                
+                container.appendChild(particle);
+                
+                // 添加轻微浮动动画
+                animateParticle(particle);
+            }
+        }
+        
+        function animateParticle(particle) {
+            const startX = parseFloat(particle.style.left);
+            const startY = parseFloat(particle.style.top);
+            const amplitudeX = Math.random() * 20 + 10;
+            const amplitudeY = Math.random() * 10 + 5;
+            const speed = Math.random() * 0.001 + 0.0005;
+            let time = Math.random() * Math.PI * 2;
+            
+            function move() {
+                time += speed;
+                const x = startX + amplitudeX * Math.sin(time * 1.5);
+                const y = startY + amplitudeY * Math.cos(time);
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                requestAnimationFrame(move);
+            }
+            
+            move();
+        }
+        
+        // 音乐控制相关功能
+        function loadMusic() {
+            backgroundMusic.src = songs[currentSongIndex].url;
+            songTitle.textContent = songs[currentSongIndex].title;
+        }
+        
+        function playPauseMusic() {
+            playSound();
+            
+            if (isPlaying) {
+                backgroundMusic.pause();
+                playIcon.className = 'fas fa-play';
+                playControlIcon.className = 'fas fa-play';
+                isPlaying = false;
+            } else {
+                backgroundMusic.play().catch(e => console.log('自动播放被阻止:', e));
+                playIcon.className = 'fas fa-pause';
+                playControlIcon.className = 'fas fa-pause';
+                isPlaying = true;
+            }
+        }
+        
+        function changeSong(direction) {
+            playSound();
+            
+            currentSongIndex += direction;
+            
+            if (currentSongIndex < 0) {
+                currentSongIndex = songs.length - 1;
+            } else if (currentSongIndex >= songs.length) {
+                currentSongIndex = 0;
+            }
+            
+            loadMusic();
+            
+            // 彩蛋检测（当播放《反方向的钟》超过5次）
+            if (songs[currentSongIndex].title === '反方向的钟') {
+                backwardsCount++;
+                
+                if (backwardsCount >= 5 && !reverseActive) {
+                    activateBackwardsMode();
+                }
+            }
+            
+            if (isPlaying) {
+                backgroundMusic.play();
+            }
+        }
+        
+        // 播放音效
+        function playSound() {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.log('音效播放错误:', e));
+        }
+        
+        // 激活时间倒流彩蛋
+        function activateBackwardsMode() {
+            reverseActive = true;
+            reverseStartTimestamp = Date.now();
+            reverseStartTime = Date.now();
+            
+            // 视觉反馈
+            document.body.style.animation = 'pulse 0.8s infinite alternate';
+            
+            // 添加动画到CSS
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes pulse {
+                    0% { background-position: 0% 50%; }
+                    100% { background-position: 100% 50%; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // 时间卡片渲染
+        function renderTimeCards() {
+            timeGrid.innerHTML = '';
+            
+            capitals.forEach(capital => {
+                const card = createTimeCard(capital);
+                timeGrid.appendChild(card);
+            });
+        }
+        
+        function createTimeCard(capital) {
+            const now = new Date();
+            const card = document.createElement('div');
+            card.className = 'time-card';
+            card.dataset.city = capital.city;
+            card.dataset.country = capital.country;
+            card.dataset.timezone = capital.timezone;
+            
+            // 随机模拟天气
+            const weatherIndex = Math.floor(Math.random() * weatherConditions.length);
+            const weather = weatherConditions[weatherIndex];
+            const weatherIcon = weatherIcons[weatherIndex];
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-country">
+                        <div class="card-flag">${capital.flag}</div>
+                        <div class="card-title">
+                            <h2>${capital.city}</h2>
+                            <div class="timezone">${capital.country} · ${capital.timezone}</div>
+                        </div>
+                    </div>
+                    <div class="card-indicator">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="time-display">
+                    <div class="main-time">${formatTime(now, capital.timezone)}</div>
+                    <div class="date">${formatDate(now, capital.timezone)}</div>
+                </div>
+                <div class="detail-info">
+                    <div class="detail-item">
+                        <div class="detail-value">${formatOffset(now, capital.timezone)}</div>
+                        <div class="detail-label">UTC偏移</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-value">${Math.floor(Math.random() * 24 + 1)}°C</div>
+                        <div class="detail-label">温度</div>
+                    </div>
+                </div>
+                <div class="weather-info">
+                    <i class="fas ${weatherIcon}"></i>
+                    <div class="weather-text">${weather}</div>
+                </div>
+                <div class="share-section">
+                    <button class="share-btn">
+                        <i class="fas fa-share-alt"></i>
+                        <span>分享时间</span>
+                    </button>
+                    <button class="share-btn">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>查看位置</span>
+                    </button>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => {
+                if (expandedCard && expandedCard !== card) {
+                    expandedCard.classList.remove('active');
+                }
+                
+                card.classList.toggle('active');
+                expandedCard = card.classList.contains('active') ? card : null;
+                playSound();
+            });
+            
+            return card;
+        }
+        
+        // 时间格式辅助函数
+        function formatTime(date, timezone) {
+            if (reverseActive && timezone) {
+                const elapsed = Date.now() - reverseStartTimestamp;
+                const reversedTime = reverseStartTime - elapsed;
+                date = new Date(reversedTime);
+            }
+            
+            return new Intl.DateTimeFormat('zh-CN', {
+                timeZone: timezone,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).format(date);
+        }
+        
+        function formatDate(date, timezone) {
+            if (reverseActive && timezone) {
+                const elapsed = Date.now() - reverseStartTimestamp;
+                const reversedTime = reverseStartTime - elapsed;
+                date = new Date(reversedTime);
+            }
+            
+            return new Intl.DateTimeFormat('zh-CN', {
+                timeZone: timezone,
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(date);
+        }
+        
+        function formatOffset(date, timezone) {
+            if (reverseActive && timezone) {
+                const elapsed = Date.now() - reverseStartTimestamp;
+                const reversedTime = reverseStartTime - elapsed;
+                date = new Date(reversedTime);
+            }
+            
+            const offset = new Date(date).getTimezoneOffset();
+            const offsetHours = Math.abs(Math.floor(offset / 60));
+            const offsetMinutes = Math.abs(offset % 60);
+            const sign = offset > 0 ? '-' : '+';
+            
+            return `UTC${sign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`;
+        }
+        
+        // 更新时间显示
+        function updateAllTimes() {
+            const cards = document.querySelectorAll('.time-card');
+            
+            cards.forEach(card => {
+                const timezone = card.dataset.timezone;
+                const mainTime = card.querySelector('.main-time');
+                const dateElement = card.querySelector('.date');
+                
+                if (mainTime && dateElement) {
+                    const now = new Date();
+                    
+                    // 彩蛋时间倒流
+                    if (reverseActive) {
+                        const elapsed = Date.now() - reverseStartTimestamp;
+                        const reversedTime = reverseStartTime - elapsed;
+                        const reversedDate = new Date(reversedTime);
+                        
+                        mainTime.textContent = formatTime(reversedDate, timezone);
+                        dateElement.textContent = formatDate(reversedDate, timezone);
+                    } else {
+                        mainTime.textContent = formatTime(now, timezone);
+                        dateElement.textContent = formatDate(now, timezone);
+                    }
+                }
+            });
+        }
+        
+        // 搜索过滤
+        function filterTimeCards() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.time-card');
+            
+            cards.forEach(card => {
+                const city = card.dataset.city.toLowerCase();
+                const country = card.dataset.country.toLowerCase();
+                const timezone = card.dataset.timezone.toLowerCase();
+                
+                if (searchTerm === '' || 
+                    city.includes(searchTerm) || 
+                    country.includes(searchTerm) ||
+                    timezone.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        // 绑定音乐控制事件
+        playBtn.addEventListener('click', playPauseMusic);
+        playPauseBtn.addEventListener('click', playPauseMusic);
+        prevBtn.addEventListener('click', () => changeSong(-1));
+        nextBtn.addEventListener('click', () => changeSong(1));
+        
+        // 监听音乐结束事件
+        backgroundMusic.addEventListener('ended', () => {
+            if (isPlaying) {
+                changeSong(1);
+            }
+        });
+    </script>
+</body>
+</html>
